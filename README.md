@@ -1,7 +1,8 @@
-# Health-Insurance-Analysis-R
-This repository provides statistical analysis and visualisation of health insurance charges using R. It explores key factors like age, BMI, smoking status, and region through regression models, non-parametric tests, and visualisations, offering actionable insights to improve affordability, accessibility, and equity in healthcare coverage.
-![image](https://github.com/user-attachments/assets/92d5c9d0-57d5-45eb-adb0-1ca4c2f4108d)
 # Health Insurance Charge Analysis Using R
+This repository provides statistical analysis and visualisation of health insurance charges using R. It explores key factors like age, BMI, smoking status, and region through regression models, non-parametric tests, and visualisations, offering actionable insights to improve affordability, accessibility, and equity in healthcare coverage.
+
+![image](https://github.com/user-attachments/assets/92d5c9d0-57d5-45eb-adb0-1ca4c2f4108d)
+
 
 This repository provides an in-depth statistical analysis of health insurance charges. Using regression models, non-parametric tests, and data visualisations, the project explores the effects of factors such as age, BMI, smoking status, and geographical region on health insurance premiums. The findings aim to assist policymakers, insurers, and healthcare stakeholders in improving affordability, accessibility, and equity in healthcare coverage.
 
