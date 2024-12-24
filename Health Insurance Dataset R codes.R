@@ -1,0 +1,272 @@
+install.packages("ggplot2")
+install.packages(c("tidyr", "knitr", "kableExtra",
+                   "patchwork", "corrplot", "vcd", "dplyr","moments","dunn.test"))
+
+library(ggplot2)
+library(tidyr)  # For reshaping data
+library(knitr)
+library(kableExtra)
+library(patchwork)
+library(corrplot)
+library(vcd)
+library(dunn.test)
+library(moments)
+library(dplyr)
+
+#Importing the data 
+setwd("c://StatsData")
+data = read.csv("Health-Insurance-Dataset.csv", header = TRUE)
+attach(data) #for referring to variables directly
+head(data)
+
+## QUESTION A
+
+# Visualisation of the Dataset
+
+dat1 = data.frame(age,bmi,children,charges)
+dat2 = data.frame(sex, smoker, region)
+
+# view dat2 (categorical variables)
+View(dat2)
+
+# Render the dataset as a table using kable
+kable(dat2, caption = "Categorical Variables") %>%
+  kable_styling(full_width = FALSE)
+
+# Calculate counts for each category of sex, smoker, and region
+sex_count = table(sex)
+smoker_count = table(smoker)
+region_count = table(region)
+Freq_Table = data.frame(sex_count, smoker_count, region_count)
+Freq_Table
+
+# Proportion Tables
+sex_prop = prop.table(sex_count)
+smoker_prop = prop.table(smoker_count)
+region_prop = prop.table(region_count)
+
+Proportion_Table = data.frame(sex_prop, smoker_prop, region_prop)
+print(Proportion_Table)
+numeric_cols = c(sex_prop, smoker_prop, region_prop)
+numeric_cols_round = round(numeric_cols, 3)
+
+# Print the rounded proportion table
+print(numeric_cols_round)
+Percentages = numeric_cols_round*100
+print(Percentages)
+
+
+# Create individual ggplot objects
+plot1 <- ggplot(dat2, aes(x = sex)) +
+  geom_bar() +
+  labs(title = "Bar Plot of Sex", x = "sex", y = "Count")
+print(plot1)
+
+plot2 <- ggplot(dat2, aes(x = smoker)) +
+  geom_bar() +
+  labs(title = "Bar Plot of smoker", x = "smoker", y = "Count")
+print(plot2)
+
+plot3 <- ggplot(dat2, aes(x = region)) +
+  geom_bar() +
+  labs(title = "Bar Plot of region", x = "region", y = "Count")
+print(plot3)
+
+# Arrange plots side by side
+(plot1 | plot2 | plot3)
+
+# Plot boxplot
+
+ggplot(data = dat1, aes(x = "", y = charges)) +
+  geom_boxplot() +
+  labs(y = "Charges") +
+  theme_minimal()
+
+# Histogram of numeric variables
+ggplot(dat1, aes(x = age)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  labs(title = "Histogram of Age", x = "Age", y = "Frequency")
+
+ggplot(dat1, aes(x = bmi)) +
+  geom_histogram(binwidth = 5, fill = "yellow", color = "black") +
+  labs(title = "Histogram of BMI", x = "BMI", y = "Frequency")
+
+ggplot(dat1, aes(x = children)) +
+  geom_histogram(binwidth = 5, fill = "green", color = "black") +
+  labs(title = "Histogram of number of Children", x = "No. of Children",
+       y = "Frequency")
+
+ggplot(dat1, aes(x = charges)) +
+  geom_histogram(binwidth = 3, fill = "orange", color = "grey") +
+  labs(title = "Histogram of Charges", x = "Charges", y = "Frequency")
+
+#Summary Statistics of Dataset
+
+summary(age)
+sd(age)
+skewness(age)
+kurtosis(age)
+summary(bmi)
+sd(bmi)
+skewness(bmi)
+kurtosis(bmi)
+summary(children)
+sd(children)
+skewness(children)
+kurtosis(children)
+summary(charges)
+sd(charges)
+skewness(charges)
+kurtosis(charges)
+
+
+
+## QUESTION B
+
+
+# Test of Independence for Categorical Variables
+# Using chi-square test
+chi_square_sex_smoker <- chisq.test(table(sex, smoker))
+chi_square_sex_region <- chisq.test(table(sex, region))
+chi_square_region_smoker <- chisq.test(table(region, smoker))
+
+# Display results
+print(chi_square_sex_smoker)
+print(chi_square_sex_region)
+print(chi_square_region_smoker)
+
+# Correlation and test of association
+cor_matrix = cor(dat1)
+cor_matrix_rounded = round(cor_matrix, 4)
+print(cor_matrix_rounded)
+
+# Create correlation plot
+corrplot(cor_matrix, method = "shade")
+
+# Scatter plots for continuous variables
+pairs(dat1)
+
+# Scatter plot for continuous variable vs categorical variables
+plot(age, charges, xlab = "age", ylab = "Charges", 
+     main = "Age vs Charges", col = ifelse(smoker == "yes", "red", "blue"))
+legend("topright", legend = c("Non-Smoker", "Smoker"), col = c("blue", "red"), pch = 1)
+
+# Test of Association between individual pairs of categorical variables
+cat_cor_matrix <- as.matrix(vcd::assocstats(table(dat2)))
+assocstats(table(sex,smoker))
+assocstats(table(sex,region))
+assocstats(table(region,smoker))
+
+# association statistics matrix for categorical variables
+cat_cor_matrix <- as.matrix(vcd::assocstats(table(dat2)))
+print(cat_cor_matrix)
+
+## QUESTION C
+## Regression model
+# Creating dummy variables
+data$sex <- factor(data$sex, levels = c("male", "female"))
+data$smoker <- factor(data$smoker, levels = c("yes", "no"))
+data$region <- factor(data$region, levels = c("southwest", "southeast",
+                                              "northeast", "northwest"))
+
+# Create the regression model
+model <- lm(charges ~ sex + region + bmi + children + smoker + age, data = data)
+
+# Print the summary of the model
+model_summary = summary(model)
+model = model$coefficients
+
+
+# Write the results to a CSV file
+write.csv(model, "model_summary_results1.csv", row.names = T)
+
+## QUESTION D
+# Charge_Split
+# Split the charges data into two groups based on a threshold value
+threshold <- median(data$charges)  
+CHARGE_split = ifelse(data$charges <= threshold, "Low", "High")
+predictor_variable = data.frame(age, bmi, children, sex,
+                                smoker, region )
+pred1 = data.frame(age, bmi, children)
+pred2 = data.frame(sex, smoker, region)
+pred3 = data.frame(age, bmi, children, region)
+# Perform statistical tests to assess differences in central tendencies of predictor variables between the two groups
+data = data.frame(bmi,CHARGE_split)
+shapiro_test_results_bmi <- data %>%
+  group_by(CHARGE_split) %>%
+  summarise(p_value = shapiro.test(bmi)$p.value)
+# Print the results
+print(shapiro_test_results_bmi)
+
+data = data.frame(age,CHARGE_split)
+shapiro_test_results_age <- data %>%
+  group_by(CHARGE_split) %>%
+  summarise(p_value = shapiro.test(age)$p.value)
+# Print the results
+print(shapiro_test_results_age)
+
+data = data.frame(children,CHARGE_split)
+shapiro_test_results_children <- data %>%
+  group_by(CHARGE_split) %>%
+  summarise(p_value = shapiro.test(children)$p.value)
+# Print the results
+print(shapiro_test_results_children)
+
+
+par(mfrow=c(1,3))
+#Non Parametric test
+
+wilcox_test1 <- wilcox.test(bmi ~ CHARGE_split)
+print(wilcox_test2)
+# Create a boxplot for bmi
+boxplot(bmi ~ CHARGE_split, data = pred1, col=2)
+
+#Non Parametric test
+wilcox_test2 <- wilcox.test(age ~ CHARGE_split)
+print(wilcox_test2)
+# Create a boxplot for age
+boxplot(age ~ CHARGE_split, data = pred1, col=3)
+
+
+#Non Parametric test
+wilcox_test3 <- wilcox.test(children ~ CHARGE_split)
+print(wilcox_test3)
+# Create a boxplot for children
+boxplot(children~ CHARGE_split, data = pred1, col=4)
+
+
+par(mfrow=c(1,1))
+
+## QUESTION E
+## Differences in central tendencies of the interval predictor variables
+# (eg BMI, Age) with respect to the geography (Region)
+#Normality Test
+shapiro.test(bmi)
+shapiro.test(age)
+shapiro.test(children)
+test_bmi =kruskal.test(bmi ~ region)
+print(test_bmi)
+
+dunn_test_bmi <- dunn.test(bmi, g = region, method = "bonferroni")
+print(dunn_test_bmi)
+
+test_age =kruskal.test(age ~ region)
+print(test_age)
+
+dunn_test_age <- dunn.test(age, g = region, method = "bonferroni")
+print(dunn_test_age)
+
+
+test_children =kruskal.test(children ~ region)
+print(test_children)
+
+dunn_test_children <- dunn.test(children, g = region, method = "bonferroni")
+print(dunn_test_children)
+
+boxplot(bmi~ region, data = pred3, col= 5)
+boxplot(age~ region, data = pred3, col= 6)
+boxplot(children~ region, data = pred3, col= 7)
+###########################################################
+
+
+
