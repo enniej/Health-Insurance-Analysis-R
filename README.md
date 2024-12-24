@@ -4,6 +4,8 @@ This repository provides statistical analysis and visualisation of health insura
 ![image](https://github.com/user-attachments/assets/92d5c9d0-57d5-45eb-adb0-1ca4c2f4108d)
 
 The project focuses on uncovering the factors driving health insurance charges, including age, BMI, smoking habits, and geographical region. By applying advanced statistical techniques and visual analytics in R, it delivers insights to support data-driven decisions, fostering equitable healthcare policies and improving access to affordable insurance coverage.
+
+
 ---
 
 ## Table of Contents
